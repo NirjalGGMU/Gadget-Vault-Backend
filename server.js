@@ -1,40 +1,16 @@
-# Database Configuration
-DB_NAME=Gadget_Vault
-DB_USER=postgres
-DB_PASSWORD=Hazard@123
-DB_HOST=localhost
-DB_PORT=5432
-
-# JWT Configuration
-JWT_SECRET=SuperSecretJWTKey!456
-expiresIn=24h
-
-# Server Configuration
-PORT=5003
-NODE_ENV=development
-
-# Other settings
-CORS_ORIGIN=http://localhost:3000
-
-# Google OAuth Configuration
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_REDIRECT_URI=http://localhost:5003/api/auth/google/callback
-
-# Email Configuration
-EMAIL_SERVICE=gmail
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_email_password
-
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import passport from 'passport';
 import connectDB from './database/index.js';
 import userRoutes from './routes/user/userRoute.js';
 import authRoutes from './routes/auth/authRoute.js';
 import fileRoutes from './routes/file/uploadRoute.js';
+import googleAuthRoutes from './routes/auth/googleAuthRoute.js';
+import emailAuthRoutes from './routes/auth/authRoute.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import './config/passport.js'; // Import Passport configuration
 
 // ES module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -49,6 +25,7 @@ const PORT = process.env.PORT || 5003;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize()); // Initialize Passport
 
 // Static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -57,6 +34,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/auth', googleAuthRoutes); // Add this line for Google OAuth routes
+app.use('/api/auth', emailAuthRoutes);
 
 // Health check route
 app.get('/', (req, res) => {
